@@ -1,6 +1,4 @@
 import time
-from collections import namedtuple
-from typing import Optional, List, Tuple
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -10,8 +8,6 @@ from tqdm import tqdm
 from hw1.base import FactorizationModel
 from hw1.utils import log_iter
 
-Sample = namedtuple("Sample", "user pos_item neg_item")
-
 
 class BPRModel(FactorizationModel):
     def __init__(self, factors: int, lr: float, iterations: int, lambd: float = 0.,
@@ -19,42 +15,39 @@ class BPRModel(FactorizationModel):
         super().__init__(factors, iterations, verbose, verbose_every)
         self._lr = lr
         self._lambd = lambd
-        self._is_sampled = None
+        self._correct_cnt = 0
         self._triplet_acc = 0.
 
-    def _sample_triplet(self, user_item: csr_matrix) -> Optional[Sample]:
-        n_users, n_items = user_item.shape
-        user = np.random.choice(np.arange(n_users)[~self._is_sampled])
-        self._is_sampled[user] = True
-        pos_items = user_item[user].nonzero()[1]
+    @staticmethod
+    def _sample_negative(user_item: csr_matrix, user: int) -> int:
+        neg_item = np.random.choice(user_item.shape[1])
+        while user_item[user, neg_item] != 0:
+            neg_item = np.random.choice(user_item.shape[1])
+        return neg_item
 
-        if len(pos_items) > 0:
-            pos_item = np.random.choice(pos_items)
-            neg_item = np.random.choice(n_items)
-            while neg_item in pos_items:
-                neg_item = np.random.choice(n_items)  # Fine for sparse matrix
+    def _grad_step(self, user: int, pos_item: int, neg_item: int):
+        score = expit(self._U[user] @ (self._I[neg_item] - self._I[pos_item]))
+        self._correct_cnt += score < 0.5
 
-            return Sample(user, pos_item, neg_item)
+        grad_user = score * (self._I[neg_item] - self._I[pos_item]) + self._lambd * self._U[user]
+        grad_pos = score * -self._U[user] + self._lambd * self._I[pos_item]
+        grad_neg = score * self._U[user] + self._lambd * self._I[neg_item]
+
+        self._U[user] -= self._lr * grad_user
+        self._I[pos_item] -= self._lr * grad_pos
+        self._I[neg_item] -= self._lr * grad_neg
 
     def _grad_steps(self, user_item: csr_matrix):
-        correct_cnt = 0
-        n_users = user_item.shape[0]
-        self._is_sampled = np.array([False] * n_users)
-        for _ in range(n_users):
-            sample = self._sample_triplet(user_item)
-            if sample is not None:
-                score = expit(self._U[sample.user] @ (self._I[sample.neg_item] - self._I[sample.pos_item]))
-                correct_cnt += score < 0.5
+        self._triplet_acc = self._correct_cnt = 0
+        n_samples = user_item.count_nonzero()
+        order = np.random.permutation(n_samples)
+        users, items = user_item.nonzero()
 
-                grad_user = score * (self._I[sample.neg_item] - self._I[sample.pos_item]) + self._lambd * self._U[
-                    sample.user]
-                grad_pos = score * -self._U[sample.user] + self._lambd * self._I[sample.pos_item]
-                grad_neg = score * self._U[sample.user] + self._lambd * self._I[sample.neg_item]
-                self._U[sample.user] -= self._lr * grad_user
-                self._I[sample.pos_item] -= self._lr * grad_pos
-                self._I[sample.neg_item] -= self._lr * grad_neg
+        for user, pos_item in zip(users[order], items[order]):
+            neg_item = self._sample_negative(user_item, user)
+            self._grad_step(user, pos_item, neg_item)
 
-        self._triplet_acc = correct_cnt / n_users
+        self._triplet_acc = self._correct_cnt / n_samples
 
     def fit(self, user_item: csr_matrix) -> "BPRModel":
         self._start_time = time.time()
