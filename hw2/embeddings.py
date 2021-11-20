@@ -22,8 +22,13 @@ class EmbeddingsBuilder:
     def _fit_items(self, sessions_df: pd.DataFrame):
         sessions = dict(sessions_df.groupby("msno").song_id.apply(list))
         sentences = [values for values in sessions.values() if len(values) > 0]
-        self._item_embeddings = Word2Vec(sentences=sentences, vector_size=self._embedding_dim,
-                                         window=5, min_count=5, seed=self._random_state)
+        # self._item_embeddings = Word2Vec(sentences=sentences, vector_size=self._embedding_dim,
+        #                                  window=5, min_count=5, seed=self._random_state)
+        self._item_embeddings = Word2Vec(vector_size=self._embedding_dim, window=5, min_count=5,
+                                         seed=self._random_state)
+        self._item_embeddings.build_vocab(sentences)
+        self._item_embeddings.train(sentences, total_examples=self._item_embeddings.corpus_count, epochs=10)
+
 
     def _fit_users(self, sessions_df: pd.DataFrame):
         positive_sessions = dict(sessions_df[sessions_df.target == 1].groupby("msno").song_id.apply(list))
