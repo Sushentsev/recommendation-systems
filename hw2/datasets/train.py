@@ -32,14 +32,6 @@ class TrainDataset(Dataset):
         self._df = self._df.sort_values(by="msno")
         return self
 
-    def merge(self, dataset: "Dataset", on: str, how: str, inplace: bool = False) -> "TrainDataset":
-        if not inplace:
-            dataset = TrainDataset(self._df).merge(dataset, on, how, inplace=True)
-            return dataset
-
-        self._df = self._df.merge(dataset.pandas_df, on=on, how=how)
-        return self
-
     def split(self, n_splits: int) -> Generator:
         group_kfold = GroupKFold(n_splits=n_splits)
 

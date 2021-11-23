@@ -9,6 +9,10 @@ class Dataset(ABC):
     def __init__(self, df: pd.DataFrame):
         self._df = df
 
+    def merge(self, dataset: "Dataset", on: str, how: str) -> "Dataset":
+        self._df = self._df.merge(dataset.pandas_df, on=on, how=how)
+        return self
+
     def to_category(self, columns: List[str]):
         for column in columns:
             self._df[column] = self._df[column].astype("category")
