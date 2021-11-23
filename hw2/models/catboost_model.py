@@ -32,7 +32,3 @@ class CatBoostModel(Model):
                     cat_features=cat_features, has_header=True)
 
         return pool
-
-
-
-

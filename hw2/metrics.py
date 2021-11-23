@@ -9,7 +9,7 @@ def dcg(scores: np.ndarray, relevance: np.ndarray) -> float:
     sorted_idx = np.argsort(-scores)
     relevance = relevance[sorted_idx]
 
-    return sum(relevance / np.log2(1 + np.arange(n_items)))
+    return sum(relevance / np.log2(1 + np.arange(1, n_items + 1)))
 
 
 def idcg(scores: np.ndarray, relevance: np.ndarray) -> float:
@@ -19,7 +19,7 @@ def idcg(scores: np.ndarray, relevance: np.ndarray) -> float:
     sorted_idx = np.argsort(-relevance)
     relevance = relevance[sorted_idx]
 
-    return sum(relevance / np.log2(1 + np.arange(n_items)))
+    return sum(relevance / np.log2(1 + np.arange(1, n_items + 1)))
 
 
 def ndcg(queries: np.ndarray, scores: np.ndarray, relevance: np.ndarray) -> float:
@@ -32,7 +32,9 @@ def ndcg(queries: np.ndarray, scores: np.ndarray, relevance: np.ndarray) -> floa
         query_mask = queries == query_label
         query_dcg = dcg(scores[query_mask], relevance[query_mask])
         query_idcg = idcg(scores[query_mask], relevance[query_mask])
-        ndcgs.append(query_dcg / query_idcg)
+
+        if query_idcg > 0:
+            ndcgs.append(query_dcg / query_idcg)
 
     return np.array(ndcgs).mean()
 
@@ -44,8 +46,11 @@ def auc_per_query(queries: np.ndarray, scores: np.ndarray, relevance: np.ndarray
     aucs = []
 
     for query_label in query_labels:
-        query_mask = queries == query_label
-        query_auc = roc_auc_score(relevance[query_mask], scores[query_mask])
-        aucs.append(query_auc)
+        try:
+            query_mask = queries == query_label
+            query_auc = roc_auc_score(relevance[query_mask], scores[query_mask])
+            aucs.append(query_auc)
+        except:
+            pass
 
     return np.array(aucs).mean()
