@@ -1,4 +1,4 @@
-from typing import Optional, List, Any, Dict
+from typing import Optional
 
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -24,18 +24,3 @@ def plot_similar(data: np.ndarray, labels: np.ndarray, title: Optional[str] = No
     plt.xlabel("$x_1$")
     plt.ylabel("$x_2$")
     plt.show()
-
-
-def plot_scores(scores: List[Dict[str, Any]], metric_type: str, metric_title: str):
-    scores = np.vstack([it["validation"][metric_type] for it in scores])
-    iterations = list(range(0, 100, 10))
-    mean = scores.mean(axis=0)
-    std = scores.std(axis=0)
-
-    plt.figure(figsize=(10, 7))
-    plt.plot(iterations, mean)
-    plt.fill_between(x=iterations, y1=mean - std, y2=mean + std, alpha=.5)
-
-    plt.title(metric_title)
-    plt.xlabel("Iterations")
-    plt.ylabel("Metric")
