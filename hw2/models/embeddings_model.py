@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm import tqdm
 
 from hw2.datasets.train import TrainDataset
 from hw2.embeddings_builder import EmbeddingsBuilder
