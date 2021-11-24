@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 import numpy as np
 import pandas as pd
 
@@ -75,6 +77,20 @@ class SongsDataset(Dataset):
             handler()
 
         return self
+
+    def similar_songs(self, n_groups: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
+        groups = self._df.groupby("genre_ids").count().sort_values("song_id", ascending=False).index.to_numpy()
+
+        if n_groups is None:
+            n_groups = len(groups)
+
+        groups = groups[:n_groups]
+        df = self._df[self._df["genre_ids"].isin(groups)]
+
+        songs = df.song_id.to_numpy()
+        genres = df.genre_ids.to_numpy()
+
+        return songs, genres
 
     @staticmethod
     def from_path(path: str) -> "SongsDataset":

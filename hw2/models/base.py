@@ -26,6 +26,4 @@ class Model(ABC):
             metrics["NDCG"].append(ndcg(test_dataset.queries, scores, test_dataset.labels))
             metrics["ROC_AUC"].append(auc_per_query(test_dataset.queries, scores, test_dataset.labels))
 
-            print(f"NDCG: {metrics['NDCG'][-1]} | ROC AUC {metrics['ROC_AUC'][-1]}")
-
         return metrics

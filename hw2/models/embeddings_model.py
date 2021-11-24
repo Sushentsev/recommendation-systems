@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 
 from hw2.datasets.train import TrainDataset
 from hw2.embeddings_builder import EmbeddingsBuilder
@@ -13,14 +14,19 @@ class EmbeddingModel(Model):
         return self
 
     def predict(self, dataset: TrainDataset) -> np.ndarray:
-        scores = []
+        scores = np.zeros(len(dataset))
 
-        for user, item in dataset.pandas_df[["msno", "song_id"]].to_numpy():
-            user_emb = self._get_user_emb(user)
-            item_emb = self._get_item_emb(item)
-            scores.append(user_emb @ item_emb)
+        users = dataset.pandas_df["msno"].to_numpy()
+        items = dataset.pandas_df["song_id"].to_numpy()
 
-        return np.array(scores)
+        mask = np.array([self._embeddings.has_user(user) and self._embeddings.has_item(item)
+                         for user, item in zip(users, items)])
+
+        user_embs = self._embeddings.get_user_embeddings(users[mask])
+        item_embs = self._embeddings.get_item_embeddings(items[mask])
+        scores[mask] = np.sum(user_embs * item_embs, axis=1)
+
+        return scores
 
     def _get_user_emb(self, user: str) -> np.ndarray:
         if not self._embeddings.has_user(user):
