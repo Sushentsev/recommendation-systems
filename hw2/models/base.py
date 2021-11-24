@@ -20,8 +20,6 @@ class Model(ABC):
         metrics = {"NDCG": [], "ROC_AUC": []}
 
         for train_dataset, test_dataset in dataset.split(n_splits):
-            print(f"Train dataset size: {len(train_dataset)} | Test dataset size: {len(test_dataset)}")
-
             self.fit(train_dataset)
             scores = self.predict(test_dataset)
 

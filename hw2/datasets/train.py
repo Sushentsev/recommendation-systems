@@ -1,4 +1,4 @@
-from typing import List, Generator
+from typing import Generator
 
 import numpy as np
 import pandas as pd
@@ -60,6 +60,6 @@ class TrainDataset(Dataset):
             "source_system_tab": "category",
             "source_screen_name": "category",
             "source_type": "category",
-            "target": np.uint8})
+            "target": np.int})
 
         return TrainDataset(df)

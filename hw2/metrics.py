@@ -7,19 +7,16 @@ def dcg(scores: np.ndarray, relevance: np.ndarray) -> float:
 
     n_items = len(scores)
     sorted_idx = np.argsort(-scores)
-    relevance = relevance[sorted_idx]
 
-    return sum(relevance / np.log2(1 + np.arange(1, n_items + 1)))
+    return sum(relevance[sorted_idx] / np.log2(1 + np.arange(1, n_items + 1)))
 
 
 def idcg(scores: np.ndarray, relevance: np.ndarray) -> float:
     assert len(scores) == len(relevance)
 
     n_items = len(scores)
-    sorted_idx = np.argsort(-relevance)
-    relevance = relevance[sorted_idx]
 
-    return sum(relevance / np.log2(1 + np.arange(1, n_items + 1)))
+    return sum(-np.sort(-relevance) / np.log2(1 + np.arange(1, n_items + 1)))
 
 
 def ndcg(queries: np.ndarray, scores: np.ndarray, relevance: np.ndarray) -> float:
