@@ -6,10 +6,12 @@ from hw2.models.base import Model
 
 
 class EmbeddingModel(Model):
-    def __init__(self, embeddings: EmbeddingsBuilder):
-        self._embeddings = embeddings
+    def __init__(self, embedding_dim: int, random_state: int, verbose: bool = True):
+        super().__init__(verbose)
+        self._embeddings = EmbeddingsBuilder(embedding_dim, random_state)
 
     def fit(self, dataset: TrainDataset) -> "EmbeddingModel":
+        self._embeddings.fit(dataset)
         return self
 
     def predict(self, dataset: TrainDataset) -> np.ndarray:
@@ -27,14 +29,14 @@ class EmbeddingModel(Model):
 
         return scores
 
-    def _get_user_emb(self, user: str) -> np.ndarray:
-        if not self._embeddings.has_user(user):
-            return self._embeddings.default_embedding
-
-        return self._embeddings.get_user_embeddings([user])[0]
-
-    def _get_item_emb(self, item: str) -> np.ndarray:
-        if not self._embeddings.has_item(item):
-            return self._embeddings.default_embedding
-
-        return self._embeddings.get_item_embeddings([item])[0]
+    # def _get_user_emb(self, user: str) -> np.ndarray:
+    #     if not self._embeddings.has_user(user):
+    #         return self._embeddings.default_embedding
+    #
+    #     return self._embeddings.get_user_embeddings([user])[0]
+    #
+    # def _get_item_emb(self, item: str) -> np.ndarray:
+    #     if not self._embeddings.has_item(item):
+    #         return self._embeddings.default_embedding
+    #
+    #     return self._embeddings.get_item_embeddings([item])[0]

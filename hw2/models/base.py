@@ -8,6 +8,9 @@ from hw2.metrics import ndcg, auc_per_query
 
 
 class Model(ABC):
+    def __init__(self, verbose: bool = True):
+        self._verbose = verbose
+
     @abstractmethod
     def fit(self, dataset: TrainDataset) -> "Model":
         raise NotImplementedError
@@ -25,5 +28,8 @@ class Model(ABC):
 
             metrics["NDCG"].append(ndcg(test_dataset.queries, scores, test_dataset.labels))
             metrics["ROC_AUC"].append(auc_per_query(test_dataset.queries, scores, test_dataset.labels))
+
+            if self._verbose:
+                print(f"NDCG: {metrics['NDCG'][-1]:.4f} | ROC AUC: {metrics['ROC_AUC'][-1]:.4f}")
 
         return metrics

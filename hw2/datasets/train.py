@@ -1,8 +1,9 @@
-from typing import Generator
+from typing import Generator, Any
 
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import GroupKFold
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 
 from hw2.datasets.base import Dataset
 
@@ -32,17 +33,42 @@ class TrainDataset(Dataset):
         self._df = self._df.sort_values(by="msno")
         return self
 
-    def split(self, n_splits: int) -> Generator:
+    def group_split(self, n_splits: int) -> Generator:
+        # Not used anymore. Split by query.
         group_kfold = GroupKFold(n_splits=n_splits)
 
-        df_sorted = self._df.sort_values(by="msno")
-        data = df_sorted.drop("target", axis=1)
+        # df_sorted = self._df.sort_values(by="msno")
+        data = self._df.drop("target", axis=1)
         groups = data.msno.cat.codes.to_numpy()
 
         for train_index, test_index in group_kfold.split(data, groups=groups):
             train_dataset = TrainDataset(self._df.iloc[train_index])
             test_dataset = TrainDataset(self._df.iloc[test_index])
             yield train_dataset, test_dataset
+
+    def split(self, n_splits: int) -> Generator:
+        splits = np.array_split(np.arange(len(self._df)), n_splits)
+
+        for i in range(n_splits):
+            mask = (np.arange(n_splits) != i)  # All except i
+            train_index = np.hstack(splits[mask])
+            test_index = splits[i]
+
+            # Remove leaks.
+            train_dataset = self._df.iloc[train_index]
+            test_dataset = self._df.iloc[test_index]
+
+            cols = ["msno", "song_id"]
+            mask_2d = np.isin(test_dataset[cols], train_dataset[cols])
+            mask = ~np.all(mask_2d, axis=1)
+
+            yield TrainDataset(train_dataset), TrainDataset(test_dataset[mask])
+
+    def add_features(self, name: str, values: Any):
+        self._df[name] = values
+
+    def drop_features(self, name: str):
+        self._df = self._df.drop(columns=name)
 
     @property
     def queries(self) -> np.ndarray:
