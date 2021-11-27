@@ -7,7 +7,7 @@ from hw2.models.base import Model
 
 class CatBoostModel(Model):
     def __init__(self, loss_function: str, iterations: int, task_type: str, random_state: int, verbose: bool = True):
-        super().__init__(verbose)
+        super().__init__(random_state, verbose)
         self._model = CatBoostRanker(loss_function=loss_function, iterations=iterations,
                                      task_type=task_type, random_state=random_state, verbose=verbose)
 

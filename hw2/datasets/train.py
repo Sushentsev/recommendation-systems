@@ -46,23 +46,23 @@ class TrainDataset(Dataset):
             test_dataset = TrainDataset(self._df.iloc[test_index])
             yield train_dataset, test_dataset
 
-    def split(self, n_splits: int) -> Generator:
-        splits = np.array_split(np.arange(len(self._df)), n_splits)
+    def split(self, n_splits: int, random_state: int) -> Generator:
+        np.random.seed(random_state)
+        splits = np.array_split(np.random.permutation(len(self._df)), n_splits)
 
         for i in range(n_splits):
-            mask = (np.arange(n_splits) != i)  # All except i
-            train_index = np.hstack(splits[mask])
+            train_index = np.hstack([splits[j] for j in range(n_splits) if j != i])
             test_index = splits[i]
 
-            # Remove leaks.
-            train_dataset = self._df.iloc[train_index]
-            test_dataset = self._df.iloc[test_index]
+            train_dataset = self._df.iloc[sorted(train_index)]
+            test_dataset = self._df.iloc[sorted(test_index)]
 
-            cols = ["msno", "song_id"]
-            mask_2d = np.isin(test_dataset[cols], train_dataset[cols])
-            mask = ~np.all(mask_2d, axis=1)
+            # Remove leaks. Too long :(
+            # cols = ["msno", "song_id"]
+            # mask_2d = np.isin(test_dataset[cols], train_dataset[cols])
+            # test_dataset = test_dataset[~np.all(mask_2d, axis=1)]
 
-            yield TrainDataset(train_dataset), TrainDataset(test_dataset[mask])
+            yield TrainDataset(train_dataset), TrainDataset(test_dataset)
 
     def add_features(self, name: str, values: Any):
         self._df[name] = values

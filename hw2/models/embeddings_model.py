@@ -7,7 +7,7 @@ from hw2.models.base import Model
 
 class EmbeddingModel(Model):
     def __init__(self, embedding_dim: int, random_state: int, verbose: bool = True):
-        super().__init__(verbose)
+        super().__init__(random_state, verbose)
         self._embeddings = EmbeddingsBuilder(embedding_dim, random_state)
 
     def fit(self, dataset: TrainDataset) -> "EmbeddingModel":

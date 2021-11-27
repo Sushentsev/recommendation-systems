@@ -7,6 +7,7 @@ import numpy as np
 class CombinedModel(Model):
     def __init__(self, loss_function: str, iterations: int, embedding_dim: int,
                  task_type: str, random_state: int, verbose: bool = True):
+        super().__init__(random_state, verbose)
         self._catboost_model = CatBoostModel(loss_function, iterations, task_type, random_state, verbose)
         self._embedding_model = EmbeddingModel(embedding_dim, random_state, verbose)
 

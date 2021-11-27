@@ -8,7 +8,8 @@ from hw2.metrics import ndcg, auc_per_query
 
 
 class Model(ABC):
-    def __init__(self, verbose: bool = True):
+    def __init__(self, random_state: int, verbose: bool = True):
+        self._random_state = random_state
         self._verbose = verbose
 
     @abstractmethod
@@ -22,7 +23,10 @@ class Model(ABC):
     def cv_scores(self, dataset: TrainDataset, n_splits: int) -> Dict[str, List[float]]:
         metrics = {"NDCG": [], "ROC_AUC": []}
 
-        for train_dataset, test_dataset in dataset.split(n_splits):
+        for train_dataset, test_dataset in dataset.split(n_splits, self._random_state):
+            if self._verbose:
+                print(f"Train size: {len(train_dataset)} | Test size: {len(test_dataset)}")
+
             self.fit(train_dataset)
             scores = self.predict(test_dataset)
 
