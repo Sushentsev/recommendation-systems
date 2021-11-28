@@ -54,13 +54,13 @@ class TrainDataset(Dataset):
             train_index = np.hstack([splits[j] for j in range(n_splits) if j != i])
             test_index = splits[i]
 
-            train_dataset = self._df.iloc[sorted(train_index)]
-            test_dataset = self._df.iloc[sorted(test_index)]
+            train_dataset = self._df.iloc[sorted(train_index)].reset_index(drop=True)
+            test_dataset = self._df.iloc[sorted(test_index)].reset_index(drop=True)
 
             # Remove leaks. Too long :(
-            # cols = ["msno", "song_id"]
-            # mask_2d = np.isin(test_dataset[cols], train_dataset[cols])
-            # test_dataset = test_dataset[~np.all(mask_2d, axis=1)]
+            cols = ["msno", "song_id"]
+            mask_2d = np.isin(test_dataset[cols], train_dataset[cols])
+            test_dataset = test_dataset[~np.all(mask_2d, axis=1)]
 
             yield TrainDataset(train_dataset), TrainDataset(test_dataset)
 

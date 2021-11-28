@@ -4,6 +4,7 @@ from hw2.models.catboost_model import CatBoostModel
 from hw2.models.embeddings_model import EmbeddingModel
 import numpy as np
 
+
 class CombinedModel(Model):
     def __init__(self, loss_function: str, iterations: int, embedding_dim: int,
                  task_type: str, random_state: int, verbose: bool = True):
